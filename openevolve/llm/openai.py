@@ -27,10 +27,27 @@ class OpenAILLM(LLMInterface):
         self.model = model or config.primary_model
 
         # Set up API client
-        self.client = openai.OpenAI(
+        # self.client = openai.OpenAI(
+        #     api_key=config.api_key,
+        #     base_url=config.api_base,
+        # )
+        self.client = openai.AzureOpenAI(
             api_key=config.api_key,
-            base_url=config.api_base,
+            azure_endpoint=config.api_base,
+            api_version="2024-02-01"
         )
+        print(f"client config: {config.api_base} {config.api_key}")
+        
+        response = self.client.chat.completions.create(
+            model="gpt-4o-2024-08-06", # model = "deployment_name".
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Does Azure OpenAI support customer managed keys?"},
+                {"role": "assistant", "content": "Yes, customer managed keys are supported by Azure OpenAI."},
+                {"role": "user", "content": "Do other Azure services support this too?"}
+            ]
+        )
+        print(response.choices[0].message.content)
 
         logger.info(f"Initialized OpenAI LLM with model: {self.model}")
 
